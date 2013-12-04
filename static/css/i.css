@@ -1,0 +1,14 @@
+.cellr{
+  width: 9px;
+  height: 9px;
+  border-bottom: 1px solid #cecece;
+  border-right: 1px solid #cecece;
+  float: left;
+  background: #efefef;
+}
+
+.fieldr {
+  width: 1000px;
+  height: 800px;
+  border: 1px solid #000000;
+}

@@ -1,0 +1,14 @@
+{application, mants,
+ [
+  {description, ""},
+  {vsn, "1"},
+  {registered, []},
+  {applications, [
+                  kernel,
+                  stdlib,
+                  lager,
+                  cowboy
+                 ]},
+  {mod, { mants_app, []}},
+  {env, []}
+ ]}.
