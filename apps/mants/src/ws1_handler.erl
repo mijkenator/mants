@@ -47,9 +47,11 @@ websocket_terminate(_Reason, _Req, _State) ->
 
 gen_move_message(#state{width = W, height = H} = State) ->
     Beasts = world_data_handler:get_beasts(),
-    jiffy:encode([[Id, T, P, new_position(P, W, H, B, State, {Id, T})] || {Id, T, _, P, _} = B <- Beasts]).
+    jiffy:encode([[Id, T, P, new_position(P, W, H, B, State, {Id, T}, Mode, OldPos)] || {Id, T, OldPos, P, Mode} = B <- Beasts]).
 
-new_position(Pos, Width, Height, _, #state{move_number = MN}, {BeastId, BeastType}) ->
+new_position(Pos, Width, Height, _, #state{move_number = MN}, {BeastId, BeastType}, Mode, OldPos0) ->
+    lager:debug("MN:~p  NPSTART", [MN]),
+    lager:debug("BEASTTYPE: ~p ~p", [BeastType, BeastId]),
     {R, C} = {Pos div Width, Pos rem Width}, 
     OldPos = R*Width + C,
     Fun = fun(CPos) ->
@@ -60,17 +62,18 @@ new_position(Pos, Width, Height, _, #state{move_number = MN}, {BeastId, BeastTyp
     end, 
     NewPos = case mants_defs:get_a_look(R,C,Width,Height,3,Fun) of
         [{Head, _TId, <<"plant">>}|_] -> 
-            %goto_target(Head, {N,M,OldPos,{R,C,Width,Height},MN})
+            lager:debug("goto PLANT ~p", [Head]),
             world_data_handler:goto_target(Head, Width, R, C)
         ;_    ->
                 StopPos = world_data_handler:get_recents_positions(BeastType, R, C, Width),
                 PossPos = world_data_handler:get_possible_positions(BeastType, R, C, Width, Height),
                 lager:debug("Stop,Poss: ~p ~p", [StopPos, PossPos]),
                 case PossPos -- StopPos of
-                    [] -> world_data_handler:get_oldest_sibling(PossPos,R,C,Width,OldPos,BeastType);
-                    L  -> lists:nth(random:uniform(length(L)), L)
+                    [] -> world_data_handler:get_oldest_sibling(PossPos,R,C,Width,OldPos,BeastType,OldPos0);
+                    %L  -> lists:nth(random:uniform(length(L)), L)
+                    L  -> world_data_handler:get_pos_by_weight(L, Width, Height, BeastType)
                 end
     end,
-    lager:debug("NP ~p ~p ~p", [MN, OldPos, NewPos]),
-    world_data_handler:process_new_position(BeastId, BeastType, NewPos, MN, OldPos, M),
+    lager:debug("NP ~p SOLDPOS:~p OLDPOS:~p NEWPOS:~p", [MN, OldPos0, OldPos, NewPos]),
+    world_data_handler:process_new_position(BeastId, BeastType, NewPos, MN, OldPos, Mode),
     NewPos.
