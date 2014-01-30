@@ -15,7 +15,6 @@ start(_StartType, _StartArgs) ->
                     {"/", cowboy_static, {file, "../../static/i.html"}},
                     {"/websocket", ws_handler, []},
                     {"/ws1", ws1_handler, []},
-                    %{"/static/[...]", cowboy_static, {priv_dir, websocket, "../../static"}}
                     {"/[...]", cowboy_static, {dir, "../../static"}}
             ]}
     ]),
